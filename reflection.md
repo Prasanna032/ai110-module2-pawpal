@@ -1,6 +1,7 @@
 # PawPal+ Project Reflection
 
 ## 1. System Design
+Three core actions a user should be able to perform that I identified are: Assigning a pet to the user, add a pet task like walking, feeding ..etc, and generate a list of tasks or plan for a day.
 
 **a. Initial design**
 
