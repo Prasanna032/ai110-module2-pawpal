@@ -35,11 +35,11 @@ pip install -r requirements.txt
 ## 📸 Demo
 
 > run `streamlit run app.py`.
-![Home page](screenshots/1.png)
-![Owner and Pet info](screenshots/2.png)
-![Tasks](screenshots/3.png)
-![Conflicts](screenshots/4.png)
-![Schedule](screenshots/5.png)
+![Home page](screenshots/1.jpg)
+![Owner and Pet info](screenshots/2.jpg)
+![Tasks](screenshots/3.jpg)
+![Conflicts](screenshots/4.jpg)
+![Schedule](screenshots/5.jpg)
 
 ---
 
