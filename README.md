@@ -35,12 +35,11 @@ pip install -r requirements.txt
 ## 📸 Demo
 
 > run `streamlit run app.py`.
-
-<a href="/course_images/ai110/1.png" target="_blank"><img src='/course_images/ai110/1.png' title='PawPal App' width='' alt='Home Page' class='center-block' /></a>
-<a href="/course_images/ai110/2.png" target="_blank"><img src='/course_images/ai110/2.png' title='PawPal App' width='' alt='Owner and Pet' class='center-block' /></a>
-<a href="/course_images/ai110/3.png" target="_blank"><img src='/course_images/ai110/3.png' title='PawPal App' width='' alt='Tasks' class='center-block' /></a>
-<a href="/course_images/ai110/4.png" target="_blank"><img src='/course_images/ai110/4.png' title='PawPal App' width='' alt='Conflict' class='center-block' /></a>
-<a href="/course_images/ai110/5.png" target="_blank"><img src='/course_images/ai110/5.png' title='PawPal App' width='' alt='Schedule' class='center-block' /></a>
+![Home page](screenshots/1.png)
+![Owner and Pet info](screenshots/2.png)
+![Tasks](screenshots/3.png)
+![Conflicts](screenshots/4.png)
+![Schedule](screenshots/5.png)
 
 ---
 
