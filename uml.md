@@ -8,6 +8,9 @@ classDiagram
         +String preferred_start_time
         +List pets
         +List tasks
+        +add_pet(pet) None
+        +add_task(task) None
+        +get_tasks_for_pet(pet) List
     }
 
     class Pet {
@@ -15,6 +18,8 @@ classDiagram
         +String species
         +int age
         +String notes
+        +List tasks
+        +add_task(task) None
         +get_info() str
     }
 
@@ -24,6 +29,9 @@ classDiagram
         +int duration_minutes
         +String priority
         +String category
+        +String frequency
+        +String start_time
+        +String due_date
         +bool completed
         +mark_complete() None
         +is_high_priority() bool
@@ -33,6 +41,12 @@ classDiagram
         +Owner owner
         +DailyPlan plan
         +add_task(task) None
+        +remove_task(task) None
+        +complete_task(task) Optional~Task~
+        +detect_conflicts() List
+        +sort_by_time() List
+        +filter_tasks(completed, pet_name) List
+        +edit_task(task, updates) None
         +generate_schedule(date) DailyPlan
     }
 

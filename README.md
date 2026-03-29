@@ -32,6 +32,29 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+## 📸 Demo
+
+> run `streamlit run app.py`.
+
+<a href="/course_images/ai110/1.png" target="_blank"><img src='/course_images/ai110/1.png' title='PawPal App' width='' alt='Home Page' class='center-block' /></a>
+<a href="/course_images/ai110/2.png" target="_blank"><img src='/course_images/ai110/2.png' title='PawPal App' width='' alt='Owner and Pet' class='center-block' /></a>
+<a href="/course_images/ai110/3.png" target="_blank"><img src='/course_images/ai110/3.png' title='PawPal App' width='' alt='Tasks' class='center-block' /></a>
+<a href="/course_images/ai110/4.png" target="_blank"><img src='/course_images/ai110/4.png' title='PawPal App' width='' alt='Conflict' class='center-block' /></a>
+<a href="/course_images/ai110/5.png" target="_blank"><img src='/course_images/ai110/5.png' title='PawPal App' width='' alt='Schedule' class='center-block' /></a>
+
+---
+
+## Features
+
+- **Priority-based scheduling** — Tasks are sorted high → medium → low before scheduling. Within the same priority, tasks are ordered alphabetically so the output is always consistent.
+- **Greedy time-fitting** — The scheduler fits as many tasks as possible into the owner's available minutes, skipping any task that no longer fits and recording why.
+- **Completed-task filtering** — Tasks already marked done are excluded from the daily schedule automatically, so they never re-appear.
+- **Sorting by start time** — sort_by_time() returns all tasks ordered chronologically by their start_time field, used to display the task table in the UI.
+- **Conflict detection** — detect_conflicts() checks every pair of pending tasks for overlapping time windows and returns a plain-language warning for each conflict found.
+- **Daily and weekly recurrence** — complete_task() marks a task done and immediately creates the next occurrence: +1 day for daily tasks, +7 days for weekly tasks. One-time tasks (frequency="once") are not re-created.
+- **Task filtering** — filter_tasks(completed, pet_name) lets the UI query tasks by completion status, by pet, or both at once.
+- **Inline task editing** — edit_task() updates any attribute of an existing task (title, priority, duration, start time, etc.) without removing and re-adding it.
+
 ## Smarter Scheduling
 
 PawPal+ was designed and built in phases. Here is a summary of what was implemented:
@@ -79,7 +102,7 @@ python -m pytest
 
 **4 / 5 stars**
 
-The core behaviors: priority sorting, completed-task filtering, recurrence, and conflict detection, are all tested and working. Confidence is not higher because the greedy scheduling algorithm is not tested for optimality, edge cases like 0 available minutes or all tasks already completed are not covered, and there are no tests for the Streamlit UI layer or data persistence.
+The core behaviors: priority sorting, completed-task filtering, recurrence, and conflict detection, are all tested and working. Confidence is not higher because the greedy scheduling algorithm is not tested for optimality, edge cases like 0 available minutes or all tasks already completed are not covered, and there are no tests for the Streamlit UI layer.
 
 ---
 

@@ -1,4 +1,5 @@
 import streamlit as st
+from datetime import date
 from pawpal_system import Owner, Pet, Task, Scheduler
 
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
@@ -68,6 +69,14 @@ with col2:
 with col3:
     priority = st.selectbox("Priority", ["low", "medium", "high"], index=2)
 
+col4, col5 = st.columns(2)
+with col4:
+    category = st.selectbox("Category", ["walk", "feeding", "medication", "grooming", "enrichment"])
+with col5:
+    frequency = st.selectbox("Frequency", ["daily", "weekly", "once"])
+
+start_time = st.text_input("Start time (HH:MM)", value="08:00")
+
 if st.button("Add task"):
     if st.session_state.owner is None:
         st.warning("Save your owner & pet first.")
@@ -75,31 +84,103 @@ if st.button("Add task"):
         owner = st.session_state.owner
         pet = owner.pets[0]
         task = Task(title=task_title, pet=pet, duration_minutes=int(duration),
-                    priority=priority, category="general")
+                    priority=priority, category=category, frequency=frequency,
+                    start_time=start_time)
         st.session_state.scheduler.add_task(task)
-        st.success(f"Added '{task_title}' ({priority}, {duration} min)")
+        st.success(f"Added '{task_title}' ({priority}, {duration} min, starts {start_time})")
 
 if st.session_state.owner and st.session_state.owner.tasks:
-    st.write("Current tasks:")
+    scheduler = st.session_state.scheduler
+
+    # Conflict warnings
+    conflicts = scheduler.detect_conflicts()
+    if conflicts:
+        for warning in conflicts:
+            st.warning(warning)
+    else:
+        st.success("No scheduling conflicts detected.")
+
+    # Tasks sorted chronologically by start_time
+    st.write("Current tasks (sorted by start time):")
     st.table([
-        {"Title": t.title, "Pet": t.pet.name, "Duration": t.duration_minutes, "Priority": t.priority}
-        for t in st.session_state.owner.tasks
+        {
+            "Title": t.title,
+            "Pet": t.pet.name,
+            "Start": t.start_time,
+            "Duration (min)": t.duration_minutes,
+            "Priority": t.priority.upper(),
+            "Category": t.category,
+            "Frequency": t.frequency,
+            "Done": "✓" if t.completed else "",
+        }
+        for t in scheduler.sort_by_time()
     ])
+
+    # Mark complete
+    st.markdown("**Mark a task complete**")
+    pending_tasks = scheduler.filter_tasks(completed=False)
+    if pending_tasks:
+        task_to_complete = st.selectbox(
+            "Select task to mark complete",
+            options=pending_tasks,
+            format_func=lambda t: f"{t.title} ({t.pet.name}, {t.start_time})",
+        )
+        if st.button("Mark complete"):
+            next_task = scheduler.complete_task(task_to_complete)
+            if next_task:
+                st.success(
+                    f"'{task_to_complete.title}' marked complete. "
+                    f"Next occurrence scheduled for {next_task.due_date}."
+                )
+            else:
+                st.success(f"'{task_to_complete.title}' marked complete (one-time task, no recurrence).")
+            st.rerun()
+    else:
+        st.info("All tasks are complete.")
 else:
     st.info("No tasks yet. Add one above.")
 
 st.divider()
 
 st.subheader("Build Schedule")
-st.caption("This button should call your scheduling logic once you implement it.")
 
 if st.button("Generate schedule"):
     if st.session_state.scheduler is None or not st.session_state.owner.tasks:
         st.warning("Add an owner, pet, and at least one task first.")
     else:
-        from datetime import date
-        plan = st.session_state.scheduler.generate_schedule(date=date.today().isoformat())
-        st.success("Schedule generated!")
-        st.text(plan.display())
-        with st.expander("Reasoning"):
+        scheduler = st.session_state.scheduler
+        plan = scheduler.generate_schedule(date=date.today().isoformat())
+
+        scheduled_count = len(plan.scheduled_tasks)
+        skipped_count = len(plan.skipped_tasks)
+
+        if scheduled_count == 0:
+            st.warning("No tasks could be scheduled — all tasks are complete or exceed available time.")
+        else:
+            st.success(f"Schedule generated: {scheduled_count} task(s) scheduled, {skipped_count} skipped.")
+
+        if plan.scheduled_tasks:
+            st.markdown("**Scheduled tasks**")
+            st.table([
+                {
+                    "#": i,
+                    "Title": t.title,
+                    "Pet": t.pet.name,
+                    "Priority": t.priority.upper(),
+                    "Duration (min)": t.duration_minutes,
+                }
+                for i, t in enumerate(plan.scheduled_tasks, start=1)
+            ])
+
+        if plan.skipped_tasks:
+            st.markdown("**Skipped tasks** (not enough time remaining)")
+            st.table([
+                {"Title": t.title, "Pet": t.pet.name, "Duration (min)": t.duration_minutes}
+                for t in plan.skipped_tasks
+            ])
+
+        st.metric("Total time used", f"{plan.total_time_used} min",
+                  delta=f"{st.session_state.owner.available_minutes - plan.total_time_used} min free")
+
+        with st.expander("Scheduling reasoning"):
             st.text(plan.get_summary())

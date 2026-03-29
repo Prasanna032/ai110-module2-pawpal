@@ -196,8 +196,10 @@ class Scheduler:
 
                 if a_start < b_end and b_start < a_end:
                     warnings.append(
-                        f"CONFLICT: '{a.title}' ({a.pet.name}, {a.start_time}–{_from_minutes(a_end)}) "
-                        f"overlaps with '{b.title}' ({b.pet.name}, {b.start_time}–{_from_minutes(b_end)})"
+                        f"'{a.title}' and '{b.title}' are scheduled at overlapping times "
+                        f"({a.start_time}–{_from_minutes(a_end)} and "
+                        f"{b.start_time}–{_from_minutes(b_end)}). "
+                        f"Try moving one of them to a different start time."
                     )
         return warnings
 
