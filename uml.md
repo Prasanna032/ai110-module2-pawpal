@@ -6,7 +6,8 @@ classDiagram
         +String name
         +int available_minutes
         +String preferred_start_time
-        +get_available_time() int
+        +List pets
+        +List tasks
     }
 
     class Pet {
@@ -19,7 +20,7 @@ classDiagram
 
     class Task {
         +String title
-        +String pet_name
+        +Pet pet
         +int duration_minutes
         +String priority
         +String category
@@ -30,25 +31,25 @@ classDiagram
 
     class Scheduler {
         +Owner owner
-        +List tasks
-        +List schedule
+        +DailyPlan plan
         +add_task(task) None
-        +generate_schedule() DailyPlan
-        +explain_plan() str
+        +generate_schedule(date) DailyPlan
     }
 
     class DailyPlan {
         +String date
         +List scheduled_tasks
-        +int total_time_used
         +List skipped_tasks
+        +int total_time_used
+        +List reasoning
         +display() str
         +get_summary() str
     }
 
     Owner "1" --> "many" Pet : owns
+    Owner "1" --> "many" Task : has
     Owner "1" --> "1" Scheduler : uses
-    Scheduler "1" --> "many" Task : manages
+    Task "many" --> "1" Pet : belongs to
     Scheduler "1" --> "1" DailyPlan : produces
     DailyPlan "1" --> "many" Task : contains
 ```
