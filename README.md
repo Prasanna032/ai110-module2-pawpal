@@ -32,6 +32,28 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+## Smarter Scheduling
+
+PawPal+ was designed and built in phases. Here is a summary of what was implemented:
+
+**Core classes** (`pawpal_system.py`):
+- `Pet` — stores animal details (name, species, age, notes) and its own task list
+- `Task` — represents one care activity with title, priority, duration, category, frequency, start time, due date, and completion status
+- `Owner` — manages multiple pets and all their tasks in one place
+- `Scheduler` — the brain; reads the owner's tasks and produces a `DailyPlan`
+- `DailyPlan` — the output; holds scheduled tasks, skipped tasks, total time used, and reasoning notes
+
+**Scheduling logic:**
+- Tasks are sorted by priority (high → medium → low) then scheduled greedily within the owner's available time budget
+- Already-completed tasks are excluded automatically
+- Skipped tasks are recorded with an explanation of why they didn't fit
+
+**Smarter scheduling features:**
+- **Recurring tasks** — `complete_task()` marks a task done and automatically creates the next occurrence (daily = +1 day, weekly = +7 days) using Python's `timedelta`
+- **Conflict detection** — `detect_conflicts()` checks every pair of pending tasks for overlapping time windows and returns human-readable warnings without crashing
+- **Sort by time** — `sort_by_time()` returns tasks ordered chronologically by `start_time`
+- **Filter tasks** — `filter_tasks(completed, pet_name)` queries the task list by completion status, pet, or both
+
 ### Suggested workflow
 
 1. Read the scenario carefully and identify requirements and edge cases.

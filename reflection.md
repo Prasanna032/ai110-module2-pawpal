@@ -43,13 +43,27 @@ Yes, several changes were made after reviewing the initial skeleton.
 
 **a. Constraints and priorities**
 
-- What constraints does your scheduler consider (for example: time, priority, preferences)?
-- How did you decide which constraints mattered most?
+--What constraints does your scheduler consider?
+
+The scheduler considers three constraints:
+
+1. **Available time** — the owner specifies how many minutes they have today. The scheduler will not add a task if it would exceed that budget.
+2. **Task priority** — each task is rated high, medium, or low. The scheduler always attempts high-priority tasks before medium or low ones.
+3. **Completion status** — tasks already marked complete are excluded from scheduling entirely, so the same task is never double-scheduled.
+
+--How did you decide which constraints mattered most?
+
+Available time and priority were the obvious starting point — without a time budget the scheduler has no reason to skip anything, and without priority there is no basis for choosing one task over another. Completion status was added because skipping already-done tasks is a correctness requirement, not an optional feature.
 
 **b. Tradeoffs**
 
-- Describe one tradeoff your scheduler makes.
-- Why is that tradeoff reasonable for this scenario?
+-Describe one tradeoff your scheduler makes.
+The scheduler uses a greedy strategy. It sorts tasks by priority (high → medium → low) and adds each one as long as it fits within the remaining time. It never looks ahead to check whether a different combination of tasks could fit more total minutes or better satisfy the owner's preferences.
+
+For example, if a 30-minute high-priority task leaves only 5 minutes, three 5-minute medium-priority tasks would all be skipped, even though fitting two of them instead might serve the owner better overall.
+
+-Why is that tradeoff reasonable for this scenario?
+For a daily pet care planner, correctness and simplicity matter more than mathematical optimality. High-priority tasks like medication or feeding must always come first, the owner should never wonder whether a "walk" bumped out "give supplements." A greedy approach is also easier to explain to the user ("we scheduled your most important tasks first") and easier to debug and test. A fully optimal scheduler (e.g. using dynamic programming or backtracking) would add significant complexity for a marginal real-world benefit in this context.
 
 ---
 

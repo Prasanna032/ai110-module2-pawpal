@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import List, Optional
+from datetime import date, timedelta
 
 PRIORITY_ORDER = {"high": 0, "medium": 1, "low": 2}
 
@@ -39,8 +40,14 @@ class Task:
     duration_minutes: int
     priority: str           # "low", "medium", "high"
     category: str           # "walk", "feeding", "medication", "grooming", "enrichment"
-    frequency: str = "daily"  # "daily", "weekly", "once"
+    frequency: str = "daily"              # "daily", "weekly", "once"
+    start_time: str = "08:00"            # preferred start time in "HH:MM" format
+    due_date: str = ""                   # "YYYY-MM-DD"; set automatically on creation
     completed: bool = False
+
+    def __post_init__(self):
+        if not self.due_date:
+            self.due_date = date.today().isoformat()
 
     def mark_complete(self) -> None:
         """Mark this task as done."""
@@ -118,6 +125,19 @@ class DailyPlan:
 
 
 # ---------------------------------------------------------------------------
+# Time helpers — convert "HH:MM" strings to/from total minutes
+# ---------------------------------------------------------------------------
+def _to_minutes(hhmm: str) -> int:
+    """Convert 'HH:MM' string to total minutes since midnight."""
+    h, m = hhmm.split(":")
+    return int(h) * 60 + int(m)
+
+def _from_minutes(total: int) -> str:
+    """Convert total minutes since midnight back to 'HH:MM' string."""
+    return f"{total // 60:02d}:{total % 60:02d}"
+
+
+# ---------------------------------------------------------------------------
 # Scheduler — core logic; builds one combined DailyPlan for the owner
 # ---------------------------------------------------------------------------
 class Scheduler:
@@ -136,6 +156,64 @@ class Scheduler:
         if task in task.pet.tasks:
             task.pet.tasks.remove(task)
 
+    def complete_task(self, task: Task) -> Optional[Task]:
+        """Mark a task complete and, if recurring, schedule the next occurrence."""
+        task.mark_complete()
+
+        if task.frequency == "once":
+            return None  # no follow-up needed
+
+        current_due = date.fromisoformat(task.due_date)
+        if task.frequency == "daily":
+            next_due = current_due + timedelta(days=1)
+        else:  # weekly
+            next_due = current_due + timedelta(weeks=1)
+
+        next_task = Task(
+            title=task.title,
+            pet=task.pet,
+            duration_minutes=task.duration_minutes,
+            priority=task.priority,
+            category=task.category,
+            frequency=task.frequency,
+            start_time=task.start_time,
+            due_date=next_due.isoformat(),
+        )
+        self.owner.add_task(next_task)
+        return next_task
+
+    def detect_conflicts(self) -> List[str]:
+        """Return a list of warning messages for tasks whose time windows overlap."""
+        warnings = []
+        pending = [t for t in self.owner.tasks if not t.completed]
+
+        for i, a in enumerate(pending):
+            for b in pending[i + 1:]:
+                a_start = _to_minutes(a.start_time)
+                a_end   = a_start + a.duration_minutes
+                b_start = _to_minutes(b.start_time)
+                b_end   = b_start + b.duration_minutes
+
+                if a_start < b_end and b_start < a_end:
+                    warnings.append(
+                        f"CONFLICT: '{a.title}' ({a.pet.name}, {a.start_time}–{_from_minutes(a_end)}) "
+                        f"overlaps with '{b.title}' ({b.pet.name}, {b.start_time}–{_from_minutes(b_end)})"
+                    )
+        return warnings
+
+    def sort_by_time(self) -> List[Task]:
+        """Return owner's tasks sorted by start_time (HH:MM) ascending."""
+        return sorted(self.owner.tasks, key=lambda t: t.start_time)
+
+    def filter_tasks(self, completed: bool = None, pet_name: str = None) -> List[Task]:
+        """Return tasks filtered by completion status and/or pet name."""
+        result = self.owner.tasks
+        if completed is not None:
+            result = [t for t in result if t.completed == completed]
+        if pet_name is not None:
+            result = [t for t in result if t.pet.name == pet_name]
+        return result
+
     def edit_task(self, task: Task, **updates) -> None:
         """Update attributes of an existing task. Pass keyword args to change (e.g. priority='high')."""
         for key, value in updates.items():
@@ -147,9 +225,10 @@ class Scheduler:
         plan = DailyPlan(date)
         time_remaining = self.owner.available_minutes
 
-        # Sort by priority, then alphabetically by title for consistent ordering
+        # Filter out already-completed tasks, then sort by priority and title
+        pending = [t for t in self.owner.tasks if not t.completed]
         sorted_tasks = sorted(
-            self.owner.tasks,
+            pending,
             key=lambda t: (PRIORITY_ORDER[t.priority], t.title)
         )
 
