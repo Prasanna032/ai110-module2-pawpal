@@ -54,6 +54,35 @@ PawPal+ was designed and built in phases. Here is a summary of what was implemen
 - **Sort by time** — `sort_by_time()` returns tasks ordered chronologically by `start_time`
 - **Filter tasks** — `filter_tasks(completed, pet_name)` queries the task list by completion status, pet, or both
 
+## Testing PawPal+
+
+### Run the tests
+
+```bash
+python -m pytest
+```
+
+### What the tests cover
+
+| Test | Behavior verified |
+|---|---|
+| test_mark_complete_changes_status | mark_complete() flips task.completed to True |
+| test_add_task_increases_pet_task_count | Adding a task syncs it to both the owner list and the pet's own list |
+| test_sort_by_time_returns_chronological_order | sort_by_time() returns tasks ordered by start_time earliest-first |
+| test_complete_daily_task_creates_next_occurrence | Completing a daily task creates a new task due the following day |
+| test_complete_once_task_returns_none | Completing a once task returns None and does not grow the task list |
+| test_detect_conflicts_flags_overlapping_tasks | Two tasks at the same time produce exactly one CONFLICT warning |
+| test_detect_conflicts_clear_for_non_overlapping_tasks | Tasks with a gap between them produce no conflict warnings |
+| test_generate_schedule_skips_completed_tasks | Already-completed tasks are excluded from the generated schedule |
+
+### Confidence Level
+
+**4 / 5 stars**
+
+The core behaviors: priority sorting, completed-task filtering, recurrence, and conflict detection, are all tested and working. Confidence is not higher because the greedy scheduling algorithm is not tested for optimality, edge cases like 0 available minutes or all tasks already completed are not covered, and there are no tests for the Streamlit UI layer or data persistence.
+
+---
+
 ### Suggested workflow
 
 1. Read the scenario carefully and identify requirements and edge cases.
